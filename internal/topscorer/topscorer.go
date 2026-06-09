@@ -126,9 +126,11 @@ var accentReplacer = strings.NewReplacer(
 )
 
 func Register(app core.App, serveEvent *core.ServeEvent) {
-	if err := EnsureCurated(app); err != nil {
-		log.Printf("[topscorer] curated shortlist seed: %v", err)
-	}
+	go func() {
+		if err := EnsureCurated(app); err != nil {
+			log.Printf("[topscorer] curated shortlist seed: %v", err)
+		}
+	}()
 
 	key := os.Getenv("API_FOOTBALL_KEY")
 	var client apiClient

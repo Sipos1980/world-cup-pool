@@ -43,7 +43,6 @@ RUN apk add --no-cache ca-certificates tzdata wget \
 	&& chmod 777 /pb_data
 COPY --from=backend /wm-pickems /usr/local/bin/wm-pickems
 RUN ln -s /usr/local/bin/wm-pickems /usr/local/bin/world-cup-pool
-USER app
 EXPOSE 8090
 ENTRYPOINT ["wm-pickems"]
 CMD ["serve", "--http=0.0.0.0:8090", "--dir=/pb_data"]

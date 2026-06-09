@@ -54,9 +54,11 @@ func canonName(s string) string {
 	return n
 }
 
-// pickProvider decides the live-results source: API-Football when its key can
-// actually reach WC2026 (a paid plan — free can't), otherwise the free
-// openfootball JSON. RESULTS_SOURCE=apifootball|openfootball forces it.
+// pickProvider decides the live-results source. RESULTS_SOURCE=apifootball
+// forces API-Football (requires API_FOOTBALL_KEY). RESULTS_SOURCE=openfootball
+// forces the free openfootball JSON feed. When RESULTS_SOURCE is unset the
+// default is always openfootball — this avoids a network call during startup
+// that can crash the process if the environment has no outbound connectivity.
 // Returns a label and a sync function (nil = none / manual-only).
 func pickProvider(app core.App) (string, func(context.Context) error) {
 	key := os.Getenv("API_FOOTBALL_KEY")
@@ -78,15 +80,10 @@ func pickProvider(app core.App) (string, func(context.Context) error) {
 		}
 		return "api-football", apiFn
 	}
-	// auto: prefer API-Football only if the key can actually fetch 2026.
-	if key != "" {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		if fx, err := football.New(key).Fixtures(ctx); err == nil && len(fx) > 0 {
-			return "api-football", apiFn
-		}
-		log.Printf("[sync] API-Football key can't reach WC2026 (free plan?) — using openfootball")
-	}
+	// auto: default to openfootball. Making an outbound HTTP request here to
+	// probe the API-Football key caused startup crashes in environments where
+	// the network is unavailable during the OnServe hook. Users who want
+	// API-Football should set RESULTS_SOURCE=apifootball explicitly.
 	return "openfootball", ofFn
 }
 

@@ -40,7 +40,7 @@ LABEL org.opencontainers.image.title="world-cup-pool" \
 RUN apk add --no-cache ca-certificates tzdata wget \
 	&& adduser -D -u 10001 app \
 	&& mkdir -p /pb_data \
-	&& chown -R app:app /pb_data
+	&& chmod 777 /pb_data
 COPY --from=backend /wm-pickems /usr/local/bin/wm-pickems
 RUN ln -s /usr/local/bin/wm-pickems /usr/local/bin/world-cup-pool
 USER app
